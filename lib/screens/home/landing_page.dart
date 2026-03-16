@@ -16,10 +16,24 @@ class _LandingPageState extends State<LandingPage> {
   LatLng? _userLocation;
   final MapController _mapController = MapController();
 
+  final ScrollController _scrollController = ScrollController();
+  double _scrollOffset = 0;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchLocation();
+    _scrollController.addListener(() {
+      setState(() {
+        _scrollOffset = _scrollController.offset;
+      });
+    });
   }
 
   Future<void> _fetchLocation() async {
@@ -73,192 +87,185 @@ class _LandingPageState extends State<LandingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final topPadding = MediaQuery.of(context).padding.top;
+    // Header fully collapses after scrolling 100px
+    final collapseProgress = (_scrollOffset / 100).clamp(0.0, 1.0);
+    final headerOpacity = 1.0 - collapseProgress;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context),
-              _buildSearchBar(context),
-              _buildMapWidget(context),
-              _buildCategories(context),
-              _buildPopularSalons(context),
-              _buildNearbySalons(context),
-              _buildStyleTips(context),
-              const SizedBox(height: 20),
-            ],
+      body: Stack(
+        children: [
+          // Scrollable content
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Space for the header
+                SizedBox(height: topPadding + 120),
+                _buildSearchBar(context),
+                _buildMapWidget(context),
+                _buildCategories(context),
+                _buildPopularSalons(context),
+                _buildNearbySalons(context),
+                _buildStyleTips(context),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          color: AppColors.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Icon(Icons.my_location, color: AppColors.accent, size: 28),
-              RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Style',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w300,
-                        color: Colors.white,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Now',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.accent,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
+          // Header that fades out on scroll
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(headerOpacity),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28 * headerOpacity),
+                  bottomRight: Radius.circular(28 * headerOpacity),
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 16),
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  IconButton(
-                    icon: Icon(
-                      isDark
-                          ? Icons.light_mode_outlined
-                          : Icons.dark_mode_outlined,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      themeNotifier.value = isDark
-                          ? ThemeMode.light
-                          : ThemeMode.dark;
-                    },
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 26,
+                  // Full header content — fades out
+                  Opacity(
+                    opacity: headerOpacity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Icon(
+                              Icons.my_location,
+                              color: AppColors.accent,
+                              size: 28,
+                            ),
+                            RichText(
+                              text: const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Style',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.white,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Now',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.accent,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    isDark
+                                        ? Icons.light_mode_outlined
+                                        : Icons.dark_mode_outlined,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                  onPressed: () {
+                                    themeNotifier.value = isDark
+                                        ? ThemeMode.light
+                                        : ThemeMode.dark;
+                                  },
+                                ),
+                                Stack(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.notifications_outlined,
+                                        color: Colors.white,
+                                        size: 26,
+                                      ),
+                                      onPressed: () {},
+                                    ),
+                                    Positioned(
+                                      right: 10,
+                                      top: 10,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.accent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        onPressed: () {},
-                      ),
-                      Positioned(
-                        right: 10,
-                        top: 10,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.accent,
-                            shape: BoxShape.circle,
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Hello, Guest 👋',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hello, Guest 👋',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
+                      ],
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Your Location',
-                          style: TextStyle(fontSize: 12, color: Colors.white60),
-                        ),
-                        SizedBox(height: 4),
-                        Row(
+                  ),
+                  // Watermark — fades IN as header fades out
+                  Opacity(
+                    opacity: collapseProgress,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: RichText(
+                        text: TextSpan(
                           children: [
-                            Icon(
-                              Icons.location_on,
-                              color: AppColors.accent,
-                              size: 16,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Colombo, Sri Lanka',
+                            TextSpan(
+                              text: 'Style',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.3),
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Now',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.accent.withOpacity(0.3),
+                                letterSpacing: 1,
                               ),
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: const [
-                        Text(
-                          'Tap to change',
-                          style: TextStyle(fontSize: 12, color: Colors.white60),
-                        ),
-                        SizedBox(height: 4),
-                        Icon(
-                          Icons.my_location,
-                          color: AppColors.accent,
-                          size: 22,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
