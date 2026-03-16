@@ -1,9 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart';
 
-class LandingPage extends StatelessWidget {
+class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
+
+  @override
+  State<LandingPage> createState() => _LandingPageState();
+}
+
+class _LandingPageState extends State<LandingPage> {
+  LatLng? _userLocation;
+  final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLocation();
+  }
+
+  Future<void> _fetchLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+    if (permission == LocationPermission.deniedForever) return;
+
+    final pos = await Geolocator.getCurrentPosition();
+    if (mounted) {
+      setState(() {
+        _userLocation = LatLng(pos.latitude, pos.longitude);
+      });
+      _mapController.move(_userLocation!, 14);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +53,7 @@ class LandingPage extends StatelessWidget {
             children: [
               _buildHeader(context),
               _buildSearchBar(context),
+              _buildMapWidget(context),
               _buildCategories(context),
               _buildPopularSalons(context),
               _buildNearbySalons(context),
@@ -33,7 +71,6 @@ class LandingPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top bar — always dark charcoal
         Container(
           color: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -111,7 +148,6 @@ class LandingPage extends StatelessWidget {
             ],
           ),
         ),
-        // Greeting + location card
         Container(
           color: Theme.of(context).scaffoldBackgroundColor,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -224,6 +260,94 @@ class LandingPage extends StatelessWidget {
             contentPadding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMapWidget(BuildContext context) {
+    final center = _userLocation ?? const LatLng(6.9271, 79.8612);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '🗺️ Salons Near You',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 220,
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(initialCenter: center, initialZoom: 14),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.example.style_now',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      if (_userLocation != null)
+                        Marker(
+                          point: _userLocation!,
+                          width: 40,
+                          height: 40,
+                          child: const Icon(
+                            Icons.my_location,
+                            color: Colors.blue,
+                            size: 32,
+                          ),
+                        ),
+                      ..._salonMarkers.map(
+                        (s) => Marker(
+                          point: s['point'] as LatLng,
+                          width: 120,
+                          height: 48,
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.content_cut,
+                                color: AppColors.accent,
+                                size: 22,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  s['name'] as String,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -568,6 +692,12 @@ class LandingPage extends StatelessWidget {
     );
   }
 }
+
+final List<Map<String, dynamic>> _salonMarkers = [
+  {'name': 'Golden Scissors', 'point': LatLng(6.9310, 79.8580)},
+  {'name': 'The Barber Co.', 'point': LatLng(6.9250, 79.8650)},
+  {'name': 'Style Hub', 'point': LatLng(6.9290, 79.8700)},
+];
 
 final List<Map<String, dynamic>> _salonData = [
   {
