@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
+import '../../main.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -6,18 +8,18 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
-              _buildSearchBar(),
-              _buildCategories(),
-              _buildPopularSalons(),
-              _buildNearbySalons(),
-              _buildBeautyTips(),
+              _buildHeader(context),
+              _buildSearchBar(context),
+              _buildCategories(context),
+              _buildPopularSalons(context),
+              _buildNearbySalons(context),
+              _buildStyleTips(context),
               const SizedBox(height: 20),
             ],
           ),
@@ -26,98 +28,223 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.location_on, color: Color(0xFFE91E8C), size: 20),
-              SizedBox(width: 4),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your Location',
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
-                  ),
-                  Text(
-                    'Colombo, Sri Lanka',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+  Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top bar — always dark charcoal
+        Container(
+          color: AppColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Icon(Icons.my_location, color: AppColors.accent, size: 28),
+              RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Style',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                        letterSpacing: 1,
+                      ),
                     ),
+                    TextSpan(
+                      text: 'Now',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accent,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      isDark
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      themeNotifier.value = isDark
+                          ? ThemeMode.light
+                          : ThemeMode.dark;
+                    },
+                  ),
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                        onPressed: () {},
+                      ),
+                      Positioned(
+                        right: 10,
+                        top: 10,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-          Row(
+        ),
+        // Greeting + location card
+        Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.black87,
+              Text(
+                'Hello, Guest 👋',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                onPressed: () {},
               ),
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: const Color(0xFFE91E8C),
-                child: const Icon(Icons.person, color: Colors.white, size: 20),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Your Location',
+                          style: TextStyle(fontSize: 12, color: Colors.white60),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: AppColors.accent,
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Colombo, Sri Lanka',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: const [
+                        Text(
+                          'Tap to change',
+                          style: TextStyle(fontSize: 12, color: Colors.white60),
+                        ),
+                        SizedBox(height: 4),
+                        Icon(
+                          Icons.my_location,
+                          color: AppColors.accent,
+                          size: 22,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
+    final cardColor = Theme.of(context).cardColor;
+    final hintColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cardColor,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
-              offset: const Offset(0, 2),
+              offset: Offset(0, 2),
             ),
           ],
         ),
-        child: const TextField(
+        child: TextField(
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: 'Search salons, services, or stylists...',
-            hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Color(0xFFE91E8C)),
+            hintStyle: TextStyle(color: hintColor, fontSize: 14),
+            prefixIcon: const Icon(Icons.search, color: AppColors.accent),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCategories() {
+  Widget _buildCategories(BuildContext context) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
     final categories = [
       {'icon': '✂️', 'label': 'Haircut'},
       {'icon': '🧔', 'label': 'Beard'},
-      {'icon': '💄', 'label': 'Makeup'},
       {'icon': '💆', 'label': 'Facial'},
       {'icon': '💅', 'label': 'Nails'},
       {'icon': '🎨', 'label': 'Hair Color'},
+      {'icon': '💄', 'label': 'Makeup'},
+      {'icon': '🪒', 'label': 'Shave'},
+      {'icon': '💪', 'label': 'Grooming'},
     ];
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: SizedBox(
-        height: 80,
+        height: 90,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -130,9 +257,9 @@ class LandingPage extends StatelessWidget {
                   width: 54,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(color: Colors.black12, blurRadius: 4),
                     ],
                   ),
@@ -146,7 +273,7 @@ class LandingPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   categories[index]['label']!,
-                  style: const TextStyle(fontSize: 11, color: Colors.black87),
+                  style: TextStyle(fontSize: 11, color: textColor),
                 ),
               ],
             );
@@ -156,41 +283,51 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPopularSalons() {
+  Widget _buildPopularSalons(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             '⭐ Popular Salons Near You',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
         SizedBox(
-          height: 200,
+          height: 230,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: _salonData.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) =>
-                _buildSalonCard(_salonData[index], horizontal: true),
+                _buildSalonCard(context, _salonData[index], horizontal: true),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildNearbySalons() {
+  Widget _buildNearbySalons(BuildContext context) {
+    final textColor = Theme.of(context).colorScheme.onSurface;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             '📍 Nearby Salons',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
         ListView.separated(
@@ -200,27 +337,27 @@ class LandingPage extends StatelessWidget {
           itemCount: _salonData.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) =>
-              _buildSalonCard(_salonData[index], horizontal: false),
+              _buildSalonCard(context, _salonData[index], horizontal: false),
         ),
       ],
     );
   }
 
   Widget _buildSalonCard(
+    BuildContext context,
     Map<String, dynamic> salon, {
     required bool horizontal,
   }) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final subColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
     return Container(
       width: horizontal ? 180 : double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
         ],
       ),
       child: horizontal
@@ -245,7 +382,7 @@ class LandingPage extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: _salonCardContent(salon),
+                  child: _salonCardContent(salon, textColor, subColor),
                 ),
               ],
             )
@@ -271,7 +408,7 @@ class LandingPage extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: _salonCardContent(salon),
+                    child: _salonCardContent(salon, textColor, subColor),
                   ),
                 ),
               ],
@@ -279,31 +416,42 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _salonCardContent(Map<String, dynamic> salon) {
+  Widget _salonCardContent(
+    Map<String, dynamic> salon,
+    Color textColor,
+    Color subColor,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           salon['name'],
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: textColor,
+          ),
         ),
         const SizedBox(height: 4),
         Row(
           children: [
-            const Icon(Icons.star, color: Colors.amber, size: 14),
-            Text(' ${salon['rating']}', style: const TextStyle(fontSize: 12)),
+            const Icon(Icons.star, color: AppColors.star, size: 14),
+            Text(
+              ' ${salon['rating']}',
+              style: TextStyle(fontSize: 12, color: textColor),
+            ),
             const SizedBox(width: 8),
-            const Icon(Icons.location_on, color: Colors.grey, size: 14),
+            Icon(Icons.location_on, color: subColor, size: 14),
             Text(
               ' ${salon['distance']}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(fontSize: 12, color: subColor),
             ),
           ],
         ),
         const SizedBox(height: 4),
         Text(
           'From Rs. ${salon['price']}',
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: TextStyle(fontSize: 12, color: subColor),
         ),
         const SizedBox(height: 6),
         SizedBox(
@@ -311,7 +459,8 @@ class LandingPage extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE91E8C),
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -319,7 +468,7 @@ class LandingPage extends StatelessWidget {
             ),
             child: const Text(
               'Book Now',
-              style: TextStyle(fontSize: 11, color: Colors.white),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -327,30 +476,36 @@ class LandingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBeautyTips() {
+  Widget _buildStyleTips(BuildContext context) {
+    final cardColor = Theme.of(context).cardColor;
+    final textColor = Theme.of(context).colorScheme.onSurface;
+    final subColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
     final tips = [
       {
         'title': '5 Tips for Healthy Hair',
-        'subtitle': 'Keep your hair shiny and strong',
+        'subtitle': 'Keep your hair strong and shiny',
       },
       {
-        'title': 'Summer Skin Care Routine',
-        'subtitle': 'Protect your skin this season',
+        'title': 'Best Beard Styles 2025',
+        'subtitle': 'Find the style that suits your face',
       },
       {
-        'title': 'Trending Nail Designs 2025',
-        'subtitle': 'Get inspired by the latest styles',
+        'title': 'Skin Care for Everyone',
+        'subtitle': 'Simple routines for all skin types',
       },
     ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
-            '💡 Beauty Tips',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            '💡 Style Tips',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
         ),
         ListView.separated(
@@ -363,9 +518,11 @@ class LandingPage extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                boxShadow: const [
+                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                ],
               ),
               child: Row(
                 children: [
@@ -373,12 +530,12 @@ class LandingPage extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFE4F3),
+                      color: AppColors.accent.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.auto_awesome,
-                      color: Color(0xFFE91E8C),
+                      color: AppColors.accent,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -388,26 +545,20 @@ class LandingPage extends StatelessWidget {
                       children: [
                         Text(
                           tips[index]['title']!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
+                            color: textColor,
                           ),
                         ),
                         Text(
                           tips[index]['subtitle']!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 12, color: subColor),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.arrow_forward_ios, size: 14, color: subColor),
                 ],
               ),
             );
@@ -424,20 +575,20 @@ final List<Map<String, dynamic>> _salonData = [
     'rating': '4.7',
     'distance': '1.2 km',
     'price': '1200',
-    'color': const Color(0xFFE91E8C),
+    'color': AppColors.primary,
   },
   {
-    'name': 'Glamour Studio',
+    'name': 'The Barber Co.',
     'rating': '4.5',
     'distance': '2.0 km',
     'price': '1500',
-    'color': const Color(0xFF9C27B0),
+    'color': AppColors.secondary,
   },
   {
     'name': 'Style Hub',
     'rating': '4.8',
     'distance': '0.8 km',
     'price': '1000',
-    'color': const Color(0xFF3F51B5),
+    'color': AppColors.accent,
   },
 ];
