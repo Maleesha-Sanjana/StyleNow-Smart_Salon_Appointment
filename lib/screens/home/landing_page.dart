@@ -23,22 +23,51 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   Future<void> _fetchLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('Location services disabled');
+        return;
+      }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
-    }
-    if (permission == LocationPermission.deniedForever) return;
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          debugPrint('Location permission denied');
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint('Location permission permanently denied');
+        return;
+      }
 
-    final pos = await Geolocator.getCurrentPosition();
-    if (mounted) {
-      setState(() {
-        _userLocation = LatLng(pos.latitude, pos.longitude);
-      });
-      _mapController.move(_userLocation!, 14);
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(pos.latitude, pos.longitude);
+        });
+        _mapController.move(_userLocation!, 14);
+      }
+    } catch (e) {
+      debugPrint('Location error: $e');
+      // Try last known position as fallback
+      try {
+        final last = await Geolocator.getLastKnownPosition();
+        if (last != null && mounted) {
+          setState(() {
+            _userLocation = LatLng(last.latitude, last.longitude);
+          });
+          _mapController.move(_userLocation!, 14);
+        }
+      } catch (_) {}
     }
   }
 
@@ -284,8 +313,133 @@ class _LandingPageState extends State<LandingPage> {
             borderRadius: BorderRadius.circular(16),
             child: SizedBox(
               height: 220,
-              child: FlutterMap(
-                mapController: _mapController,
+              child: Stack(
+                children: [
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(initialCenter: center, initialZoom: 14),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.style_now',
+                      ),
+                      MarkerLayer(markers: _buildMarkers()),
+                    ],
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _openFullScreenMap(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.fullscreen,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        GestureDetector(
+                          onTap: _fetchLocation,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black26, blurRadius: 4),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.my_location,
+                              color: Colors.blue,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Marker> _buildMarkers() {
+    return [
+      if (_userLocation != null)
+        Marker(
+          point: _userLocation!,
+          width: 48,
+          height: 48,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: const [
+                BoxShadow(color: Colors.black38, blurRadius: 6),
+              ],
+            ),
+            child: const Icon(
+              Icons.person_pin_circle,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+        ),
+      ..._salonMarkers.map(
+        (s) => Marker(
+          point: s['point'] as LatLng,
+          width: 120,
+          height: 48,
+          child: Column(
+            children: [
+              const Icon(Icons.content_cut, color: AppColors.accent, size: 22),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  s['name'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  void _openFullScreenMap(BuildContext context) {
+    final center = _userLocation ?? const LatLng(6.9271, 79.8612);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          body: Stack(
+            children: [
+              FlutterMap(
                 options: MapOptions(initialCenter: center, initialZoom: 14),
                 children: [
                   TileLayer(
@@ -293,61 +447,25 @@ class _LandingPageState extends State<LandingPage> {
                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.example.style_now',
                   ),
-                  MarkerLayer(
-                    markers: [
-                      if (_userLocation != null)
-                        Marker(
-                          point: _userLocation!,
-                          width: 40,
-                          height: 40,
-                          child: const Icon(
-                            Icons.my_location,
-                            color: Colors.blue,
-                            size: 32,
-                          ),
-                        ),
-                      ..._salonMarkers.map(
-                        (s) => Marker(
-                          point: s['point'] as LatLng,
-                          width: 120,
-                          height: 48,
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.content_cut,
-                                color: AppColors.accent,
-                                size: 22,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  s['name'] as String,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  MarkerLayer(markers: _buildMarkers()),
                 ],
               ),
-            ),
+              Positioned(
+                top: 0,
+                left: 16,
+                child: SafeArea(
+                  child: CircleAvatar(
+                    backgroundColor: AppColors.primary,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
