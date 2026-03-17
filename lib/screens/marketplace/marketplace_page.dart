@@ -174,7 +174,6 @@ class _MarketplacePageState extends State<MarketplacePage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // Search bar
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.12),
@@ -295,7 +294,7 @@ class _MarketplacePageState extends State<MarketplacePage> {
   }
 }
 
-// ── Product Card (Facebook Marketplace style) ──────────────────────────────
+// ── Product Card ──────────────────────────────────────────────────────────
 
 class _ProductCard extends StatelessWidget {
   final _Product product;
@@ -326,7 +325,6 @@ class _ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image area
             Stack(
               children: [
                 ClipRRect(
@@ -345,7 +343,6 @@ class _ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Save button
                 Positioned(
                   top: 8,
                   right: 8,
@@ -368,7 +365,6 @@ class _ProductCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Condition badge
                 Positioned(
                   bottom: 8,
                   left: 8,
@@ -395,7 +391,6 @@ class _ProductCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Info
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
               child: Column(
@@ -471,7 +466,6 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Drag handle
                 Center(
                   child: Container(
                     width: 40,
@@ -483,7 +477,6 @@ class _ProductCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Product image
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
@@ -499,7 +492,6 @@ class _ProductCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Price + name
                 Text(
                   product.price,
                   style: const TextStyle(
@@ -518,7 +510,6 @@ class _ProductCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Condition + location row
                 Row(
                   children: [
                     Container(
@@ -552,7 +543,6 @@ class _ProductCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Seller row
                 Row(
                   children: [
                     CircleAvatar(
@@ -587,7 +577,6 @@ class _ProductCard extends StatelessWidget {
                   ],
                 ),
                 const Divider(height: 24),
-                // Action buttons
                 Row(
                   children: [
                     Expanded(

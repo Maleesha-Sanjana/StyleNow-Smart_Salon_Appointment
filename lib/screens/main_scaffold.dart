@@ -6,6 +6,9 @@ import 'salons/salons_page.dart';
 import 'marketplace/marketplace_page.dart';
 import 'profile/profile_page.dart';
 
+/// Global notifier — set to 4 to jump to Profile tab from anywhere
+final ValueNotifier<int> mainNavIndex = ValueNotifier(0);
+
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
 
@@ -14,7 +17,7 @@ class MainScaffold extends StatefulWidget {
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  int _currentIndex = 0;
+  int _previousIndex = 0;
 
   final List<Widget> _pages = const [
     LandingPage(),
@@ -25,12 +28,59 @@ class _MainScaffoldState extends State<MainScaffold> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    mainNavIndex.addListener(_onNavChange);
+  }
+
+  @override
+  void dispose() {
+    mainNavIndex.removeListener(_onNavChange);
+    super.dispose();
+  }
+
+  void _onNavChange() {
+    setState(() {});
+  }
+
+  void _onTap(int index) {
+    _previousIndex = mainNavIndex.value;
+    mainNavIndex.value = index;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final current = mainNavIndex.value;
+    final goingRight = current > _previousIndex;
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        transitionBuilder: (child, animation) {
+          // Slide direction depends on which tab we're going to
+          final offsetTween = Tween<Offset>(
+            begin: Offset(goingRight ? 0.08 : -0.08, 0),
+            end: Offset.zero,
+          );
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: offsetTween.animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+              ),
+              child: child,
+            ),
+          );
+        },
+        // Key forces AnimatedSwitcher to treat each tab as a new widget
+        child: KeyedSubtree(
+          key: ValueKey<int>(current),
+          child: _pages[current],
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: current,
+        onTap: _onTap,
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.primary,
         selectedItemColor: AppColors.accent,
