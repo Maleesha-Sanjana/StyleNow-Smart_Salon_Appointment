@@ -152,123 +152,90 @@ class _LandingPageState extends State<LandingPage> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Full header content — fades out
+                  // Right-side icons — always visible while header is shown
                   Opacity(
                     opacity: headerOpacity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        IconButton(
+                          icon: Icon(
+                            isDark
+                                ? Icons.light_mode_outlined
+                                : Icons.dark_mode_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onPressed: () {
+                            themeNotifier.value = isDark
+                                ? ThemeMode.light
+                                : ThemeMode.dark;
+                          },
+                        ),
+                        Stack(
                           children: [
-                            const Icon(
-                              Icons.my_location,
-                              color: AppColors.accent,
-                              size: 28,
-                            ),
-                            RichText(
-                              text: const TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Style',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.white,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Now',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.accent,
-                                      letterSpacing: 1,
-                                    ),
-                                  ),
-                                ],
+                            IconButton(
+                              icon: const Icon(
+                                Icons.chat_bubble_outline,
+                                color: Colors.white,
+                                size: 26,
                               ),
+                              onPressed: () => guardAction(context),
                             ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    isDark
-                                        ? Icons.light_mode_outlined
-                                        : Icons.dark_mode_outlined,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                  onPressed: () {
-                                    themeNotifier.value = isDark
-                                        ? ThemeMode.light
-                                        : ThemeMode.dark;
-                                  },
+                            Positioned(
+                              right: 10,
+                              top: 10,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.accent,
+                                  shape: BoxShape.circle,
                                 ),
-                                Stack(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.chat_bubble_outline,
-                                        color: Colors.white,
-                                        size: 26,
-                                      ),
-                                      onPressed: () => guardAction(context),
-                                    ),
-                                    Positioned(
-                                      right: 10,
-                                      top: 10,
-                                      child: Container(
-                                        width: 8,
-                                        height: 8,
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.accent,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
-                  // Watermark — fades IN as header fades out
-                  Opacity(
-                    opacity: collapseProgress,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Style',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(
+                  // App name — centered, animates from header style → watermark style
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Style',
+                            style: TextStyle(
+                              // font size shrinks from 24 → 20
+                              fontSize: 24 - (4 * collapseProgress),
+                              fontWeight: FontWeight.w300,
+                              // color fades from white → onSurface@30%
+                              color: Color.lerp(
+                                Colors.white,
+                                Theme.of(
                                   context,
-                                ).colorScheme.onSurface.withOpacity(0.3),
-                                letterSpacing: 1,
+                                ).colorScheme.onSurface.withValues(alpha: 0.3),
+                                collapseProgress,
                               ),
+                              letterSpacing: 1,
                             ),
-                            TextSpan(
-                              text: 'Now',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.accent.withOpacity(0.3),
-                                letterSpacing: 1,
+                          ),
+                          TextSpan(
+                            text: 'Now',
+                            style: TextStyle(
+                              fontSize: 24 - (4 * collapseProgress),
+                              fontWeight: FontWeight.bold,
+                              // accent fades to 30% opacity
+                              color: Color.lerp(
+                                AppColors.accent,
+                                AppColors.accent.withValues(alpha: 0.3),
+                                collapseProgress,
                               ),
+                              letterSpacing: 1,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

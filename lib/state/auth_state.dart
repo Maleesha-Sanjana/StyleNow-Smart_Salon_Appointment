@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import '../screens/main_scaffold.dart';
+import '../screens/profile/profile_page.dart';
 
 /// Simple auth state — false = guest, true = logged in
 final ValueNotifier<bool> isLoggedIn = ValueNotifier(false);
 
-/// Shows "Login to access this feature" popup
+/// Shows "Login to access this feature" popup.
+/// Tapping Login → switches to Profile tab and opens the login sheet.
 void showGuestRestrictionPopup(BuildContext context) {
   showDialog(
     context: context,
@@ -13,7 +16,7 @@ void showGuestRestrictionPopup(BuildContext context) {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.lock_outline, size: 48, color: Color(0xFFD4AF37)),
+          const Icon(Icons.lock_outline, size: 48, color: Color(0xFFC9A84C)),
           const SizedBox(height: 16),
           const Text(
             'Login Required',
@@ -32,7 +35,7 @@ void showGuestRestrictionPopup(BuildContext context) {
                 child: OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF2C2C3E)),
+                    side: const BorderSide(color: Color(0xFF2D2D2D)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -40,7 +43,7 @@ void showGuestRestrictionPopup(BuildContext context) {
                   ),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(color: Color(0xFF2C2C3E)),
+                    style: TextStyle(color: Color(0xFF2D2D2D)),
                   ),
                 ),
               ),
@@ -48,12 +51,18 @@ void showGuestRestrictionPopup(BuildContext context) {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
+                    // Close the popup
                     Navigator.pop(context);
-                    // TODO: navigate to login sheet
+                    // Switch bottom nav to Profile tab (index 4)
+                    mainNavIndex.value = 4;
+                    // After the frame settles, open the login sheet
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      showLoginSheet(context);
+                    });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
-                    foregroundColor: const Color(0xFF2C2C3E),
+                    backgroundColor: const Color(0xFFC9A84C),
+                    foregroundColor: const Color(0xFF2D2D2D),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

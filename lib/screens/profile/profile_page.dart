@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
 
+/// Call this from anywhere to open the login/signup bottom sheet
+void showLoginSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const _LoginSheet(),
+  );
+}
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
-
-  void _showLoginPrompt(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _LoginSheet(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +95,7 @@ class ProfilePage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => _showLoginPrompt(context),
+                      onPressed: () => showLoginSheet(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: AppColors.primary,
@@ -116,7 +117,7 @@ class ProfilePage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () => _showLoginPrompt(context),
+                      onPressed: () => showLoginSheet(context),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.accent,
                         side: const BorderSide(color: AppColors.accent),
@@ -182,7 +183,7 @@ class ProfilePage extends StatelessWidget {
     Color textColor,
   ) {
     return GestureDetector(
-      onTap: () => _showLoginPrompt(context),
+      onTap: () => showLoginSheet(context),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
