@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart';
+import '../../state/auth_state.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -709,7 +710,7 @@ class _LandingPageState extends State<LandingPage> {
         SizedBox(
           height: 28,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () => guardAction(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: AppColors.primary,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../state/auth_state.dart';
 
 class ServicesPage extends StatelessWidget {
   const ServicesPage({super.key});
@@ -105,46 +106,49 @@ class ServicesPage extends StatelessWidget {
               itemCount: _services.length,
               itemBuilder: (context, index) {
                 final s = _services[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 6),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(s['icon']!, style: const TextStyle(fontSize: 32)),
-                      const SizedBox(height: 8),
-                      Text(
-                        s['name']!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: textColor,
+                return GestureDetector(
+                  onTap: () => guardAction(context),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s['icon']!, style: const TextStyle(fontSize: 32)),
+                        const SizedBox(height: 8),
+                        Text(
+                          s['name']!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: textColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        s['price']!,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.accent,
+                        const SizedBox(height: 4),
+                        Text(
+                          s['price']!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.accent,
+                          ),
                         ),
-                      ),
-                      Text(
-                        s['duration']!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: textColor.withOpacity(0.5),
+                        Text(
+                          s['duration']!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: textColor.withOpacity(0.5),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
+                      ],
+                    ),
+                  ), // close Container
+                ); // close GestureDetector
               },
             ),
           ),

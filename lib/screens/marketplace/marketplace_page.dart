@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../state/auth_state.dart';
 
 class MarketplacePage extends StatelessWidget {
   const MarketplacePage({super.key});
@@ -140,7 +141,7 @@ class MarketplacePage extends StatelessWidget {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () => guardAction(context),
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
