@@ -87,21 +87,53 @@ class _FeedPageState extends State<FeedPage> {
                     color: Colors.white,
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _showCreatePostSheet(context),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Post'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Notification icon
+                    Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                          onPressed: () => guardAction(context),
+                        ),
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                    const SizedBox(width: 4),
+                    // Post button
+                    ElevatedButton.icon(
+                      onPressed: () => _showCreatePostSheet(context),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Post'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
