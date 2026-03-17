@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'home/landing_page.dart';
-import 'services/services_page.dart';
+import 'feed/feed_page.dart';
 import 'salons/salons_page.dart';
 import 'marketplace/marketplace_page.dart';
 import 'profile/profile_page.dart';
@@ -18,7 +18,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   final List<Widget> _pages = const [
     LandingPage(),
-    ServicesPage(),
+    FeedPage(),
     SalonsPage(),
     MarketplacePage(),
     ProfilePage(),
@@ -45,9 +45,9 @@ class _MainScaffoldState extends State<MainScaffold> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.content_cut_outlined),
-            activeIcon: Icon(Icons.content_cut),
-            label: 'Services',
+            icon: Icon(Icons.dynamic_feed_outlined),
+            activeIcon: Icon(Icons.dynamic_feed),
+            label: 'Feed',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.store_outlined),

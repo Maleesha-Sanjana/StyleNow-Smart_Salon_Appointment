@@ -5,6 +5,14 @@ import 'package:geolocator/geolocator.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart';
 import '../../state/auth_state.dart';
+import '../categories/haircut_page.dart';
+import '../categories/beard_page.dart';
+import '../categories/facial_page.dart';
+import '../categories/nails_page.dart';
+import '../categories/hair_color_page.dart';
+import '../categories/makeup_page.dart';
+import '../categories/shave_page.dart';
+import '../categories/grooming_page.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -485,14 +493,14 @@ class _LandingPageState extends State<LandingPage> {
     final cardColor = Theme.of(context).cardColor;
     final textColor = Theme.of(context).colorScheme.onSurface;
     final categories = [
-      {'icon': '✂️', 'label': 'Haircut'},
-      {'icon': '🧔', 'label': 'Beard'},
-      {'icon': '💆', 'label': 'Facial'},
-      {'icon': '💅', 'label': 'Nails'},
-      {'icon': '🎨', 'label': 'Hair Color'},
-      {'icon': '💄', 'label': 'Makeup'},
-      {'icon': '🪒', 'label': 'Shave'},
-      {'icon': '💪', 'label': 'Grooming'},
+      {'icon': '✂️', 'label': 'Haircut', 'page': const HaircutPage()},
+      {'icon': '🧔', 'label': 'Beard', 'page': const BeardPage()},
+      {'icon': '💆', 'label': 'Facial', 'page': const FacialPage()},
+      {'icon': '💅', 'label': 'Nails', 'page': const NailsPage()},
+      {'icon': '🎨', 'label': 'Hair Color', 'page': const HairColorPage()},
+      {'icon': '💄', 'label': 'Makeup', 'page': const MakeupPage()},
+      {'icon': '🪒', 'label': 'Shave', 'page': const ShavePage()},
+      {'icon': '💪', 'label': 'Grooming', 'page': const GroomingPage()},
     ];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -504,31 +512,38 @@ class _LandingPageState extends State<LandingPage> {
           itemCount: categories.length,
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
-            return Column(
-              children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 4),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      categories[index]['icon']!,
-                      style: const TextStyle(fontSize: 24),
+            final cat = categories[index];
+            return GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => cat['page'] as Widget),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        cat['icon'] as String,
+                        style: const TextStyle(fontSize: 24),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  categories[index]['label']!,
-                  style: TextStyle(fontSize: 11, color: textColor),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    cat['label'] as String,
+                    style: TextStyle(fontSize: 11, color: textColor),
+                  ),
+                ],
+              ),
             );
           },
         ),

@@ -72,17 +72,19 @@ After user login or signup, full features are unlocked.
 - Guest: Scroll beauty tips, view salon promotions
 - Logged-in: Like, Comment, Share, Save posts
 
-### ✂️ Services Section
-- Guest: Browse salon services
-- Logged-in: Book services, select stylist, choose time slot
+### 📰 Feed Section (replaces Services in nav bar)
+- Facebook-style social feed for the beauty/salon community
+- Guest: Scroll and view posts only
+- Logged-in: Like, Comment, Share posts, Create new posts (photo/video)
 
-**Example services:**
-- Haircut
-- Hair coloring
-- Facial
-- Beard trimming
-- Bridal makeup
-- Hair treatment
+**Post interactions:**
+- Like button (heart) — toggles liked state, shows like count
+- Comment button — expands inline comment thread with reply input
+- Share button — share post (requires login)
+- Create Post button (top-right) — opens bottom sheet with text + Photo/Video selector
+
+**Guest restrictions:**
+- Like, Comment, Share, Create Post → shows "Login to access this feature" popup
 
 ### 📍 Salons Section
 - Guest: View salon list
@@ -136,7 +138,7 @@ After user login or signup, full features are unlocked.
 ## 7️⃣ UI Design Notes (Facebook Style)
 
 - Feed: Scrollable cards, salon promotions, beauty tips
-- Navigation: Bottom nav — Home, Services, Salons, Marketplace, Profile
+- Navigation: Bottom nav — Home, Feed, Salons, Marketplace, Profile
 - Guest Mode: Book, Like, Comment, Save buttons disabled → popup on tap
 
 ---
