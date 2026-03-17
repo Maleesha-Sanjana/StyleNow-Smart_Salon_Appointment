@@ -104,7 +104,18 @@ class _LandingPageState extends State<LandingPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Space for the header
-                SizedBox(height: topPadding + 120),
+                SizedBox(height: topPadding + 100),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Text(
+                    'Hello, Guest 👋',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
                 _buildSearchBar(context),
                 _buildMapWidget(context),
                 _buildCategories(context),
@@ -216,14 +227,6 @@ class _LandingPageState extends State<LandingPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Hello, Guest 👋',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
                       ],
                     ),
                   ),
