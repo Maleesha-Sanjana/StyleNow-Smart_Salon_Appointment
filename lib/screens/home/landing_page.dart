@@ -211,11 +211,11 @@ class _LandingPageState extends State<LandingPage> {
                                   children: [
                                     IconButton(
                                       icon: const Icon(
-                                        Icons.notifications_outlined,
+                                        Icons.chat_bubble_outline,
                                         color: Colors.white,
                                         size: 26,
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () => guardAction(context),
                                     ),
                                     Positioned(
                                       right: 10,
