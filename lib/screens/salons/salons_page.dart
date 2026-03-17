@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../state/auth_state.dart';
 
 class SalonsPage extends StatefulWidget {
   const SalonsPage({super.key});
@@ -207,7 +208,7 @@ class _SalonsPageState extends State<SalonsPage> {
                                   SizedBox(
                                     height: 28,
                                     child: ElevatedButton(
-                                      onPressed: () {},
+                                      onPressed: () => guardAction(context),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.accent,
                                         foregroundColor: AppColors.primary,
