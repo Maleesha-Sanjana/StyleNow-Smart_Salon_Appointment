@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/main_scaffold.dart';
 import '../screens/profile/profile_page.dart';
 
-/// Simple auth state — false = guest, true = logged in
-final ValueNotifier<bool> isLoggedIn = ValueNotifier(false);
+/// Reflects real Firebase auth state
+final ValueNotifier<bool> isLoggedIn = ValueNotifier(
+  FirebaseAuth.instance.currentUser != null,
+);
+
+/// Listen to Firebase auth changes and keep isLoggedIn in sync
+void initAuthListener() {
+  FirebaseAuth.instance.authStateChanges().listen((user) {
+    isLoggedIn.value = user != null;
+  });
+}
 
 /// Shows "Login to access this feature" popup.
 /// Tapping Login → switches to Profile tab and opens the login sheet.
@@ -51,11 +61,8 @@ void showGuestRestrictionPopup(BuildContext context) {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    // Close the popup
                     Navigator.pop(context);
-                    // Switch bottom nav to Profile tab (index 4)
                     mainNavIndex.value = 4;
-                    // After the frame settles, open the login sheet
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       showLoginSheet(context);
                     });
