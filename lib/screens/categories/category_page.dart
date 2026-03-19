@@ -91,7 +91,7 @@ class CategoryPage extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.accent.withOpacity(0.12),
+                          color: AppColors.accent.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
@@ -127,7 +127,7 @@ class CategoryPage extends StatelessWidget {
                                   o['duration']!,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: textColor.withOpacity(0.6),
+                                    color: textColor.withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],

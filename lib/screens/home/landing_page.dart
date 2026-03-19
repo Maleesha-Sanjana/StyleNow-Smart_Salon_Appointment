@@ -142,7 +142,7 @@ class _LandingPageState extends State<LandingPage> {
             right: 0,
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(headerOpacity),
+                color: AppColors.primary.withValues(alpha: headerOpacity),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(28 * headerOpacity),
                   bottomRight: Radius.circular(28 * headerOpacity),
@@ -250,7 +250,9 @@ class _LandingPageState extends State<LandingPage> {
 
   Widget _buildSearchBar(BuildContext context) {
     final cardColor = Theme.of(context).cardColor;
-    final hintColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+    final hintColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.5);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
       child: Container(
@@ -307,7 +309,8 @@ class _LandingPageState extends State<LandingPage> {
                     children: [
                       TileLayer(
                         urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                        subdomains: const ['a', 'b', 'c', 'd'],
                         userAgentPackageName: 'com.example.style_now',
                       ),
                       MarkerLayer(markers: _buildMarkers()),
@@ -430,7 +433,8 @@ class _LandingPageState extends State<LandingPage> {
                 children: [
                   TileLayer(
                     urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: 'com.example.style_now',
                   ),
                   MarkerLayer(markers: _buildMarkers()),
@@ -585,7 +589,9 @@ class _LandingPageState extends State<LandingPage> {
   }) {
     final cardColor = Theme.of(context).cardColor;
     final textColor = Theme.of(context).colorScheme.onSurface;
-    final subColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+    final subColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.6);
     return Container(
       width: horizontal ? 180 : double.infinity,
       decoration: BoxDecoration(
@@ -714,7 +720,9 @@ class _LandingPageState extends State<LandingPage> {
   Widget _buildStyleTips(BuildContext context) {
     final cardColor = Theme.of(context).cardColor;
     final textColor = Theme.of(context).colorScheme.onSurface;
-    final subColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+    final subColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.6);
     final tips = [
       {
         'title': '5 Tips for Healthy Hair',
@@ -765,7 +773,7 @@ class _LandingPageState extends State<LandingPage> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.15),
+                      color: AppColors.accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(

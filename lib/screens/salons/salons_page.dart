@@ -148,8 +148,8 @@ class _SalonsPageState extends State<SalonsPage> {
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: AppColors.accent.withOpacity(
-                                          0.15,
+                                        color: AppColors.accent.withValues(
+                                          alpha: 0.15,
                                         ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -188,7 +188,7 @@ class _SalonsPageState extends State<SalonsPage> {
                                     ' ${s['distance']}',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: textColor.withOpacity(0.6),
+                                      color: textColor.withValues(alpha: 0.6),
                                     ),
                                   ),
                                 ],
@@ -202,7 +202,7 @@ class _SalonsPageState extends State<SalonsPage> {
                                     'From Rs. ${s['price']}',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: textColor.withOpacity(0.6),
+                                      color: textColor.withValues(alpha: 0.6),
                                     ),
                                   ),
                                   SizedBox(

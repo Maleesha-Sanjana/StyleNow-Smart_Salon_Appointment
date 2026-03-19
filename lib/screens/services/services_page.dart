@@ -142,7 +142,7 @@ class ServicesPage extends StatelessWidget {
                           s['duration']!,
                           style: TextStyle(
                             fontSize: 11,
-                            color: textColor.withOpacity(0.5),
+                            color: textColor.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
