@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import '../../state/auth_state.dart';
 
@@ -22,9 +25,7 @@ class ProfilePage extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: isLoggedIn,
       builder: (context, loggedIn, _) {
-        if (loggedIn) {
-          return const _LoggedInProfile();
-        }
+        if (loggedIn) return const _LoggedInProfile();
         return const _GuestProfile();
       },
     );
@@ -45,11 +46,11 @@ class _GuestProfile extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _header(
-            topPadding,
-            'Guest User',
-            'Login to unlock all features',
-            null,
+          _ProfileHeader(
+            topPadding: topPadding,
+            name: 'Guest User',
+            subtitle: 'Login to unlock all features',
+            photoUrl: null,
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -176,8 +177,46 @@ class _GuestProfile extends StatelessWidget {
 
 // ─── Logged-in View ───────────────────────────────────────────────────────────
 
-class _LoggedInProfile extends StatelessWidget {
+class _LoggedInProfile extends StatefulWidget {
   const _LoggedInProfile();
+
+  @override
+  State<_LoggedInProfile> createState() => _LoggedInProfileState();
+}
+
+class _LoggedInProfileState extends State<_LoggedInProfile> {
+  bool _uploading = false;
+
+  Future<void> _changePhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked == null) return;
+
+    setState(() => _uploading = true);
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final ref = FirebaseStorage.instance.ref(
+        'profile_photos/${user.uid}.jpg',
+      );
+      await ref.putFile(File(picked.path));
+      final url = await ref.getDownloadURL();
+      await user.updatePhotoURL(url);
+      // Reload user so currentUser reflects new photoURL
+      await user.reload();
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to update photo')));
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
 
   Future<void> _signOut() async {
     await GoogleSignIn().signOut();
@@ -197,7 +236,108 @@ class _LoggedInProfile extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Column(
         children: [
-          _header(topPadding, displayName, email, photoUrl),
+          // Header with tappable photo
+          Container(
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+            ),
+            padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 28),
+            child: Column(
+              children: [
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      color: AppColors.accent,
+                      size: 28,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                GestureDetector(
+                  onTap: _uploading ? null : _changePhoto,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.accent, width: 2),
+                        ),
+                        child: _uploading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.accent,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : (photoUrl != null
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        photoUrl,
+                                        fit: BoxFit.cover,
+                                        width: 80,
+                                        height: 80,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 44,
+                                    )),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: const TextStyle(fontSize: 13, color: Colors.white60),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -243,7 +383,7 @@ class _LoggedInProfile extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => _signOut(),
+                      onPressed: _signOut,
                       icon: const Icon(Icons.logout, color: Colors.red),
                       label: const Text(
                         'Sign Out',
@@ -302,69 +442,79 @@ class _LoggedInProfile extends StatelessWidget {
   }
 }
 
-// ─── Shared header ────────────────────────────────────────────────────────────
+// ─── Shared header (guest only) ───────────────────────────────────────────────
 
-Widget _header(
-  double topPadding,
-  String name,
-  String subtitle,
-  String? photoUrl,
-) {
-  return Container(
-    decoration: const BoxDecoration(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.only(
-        bottomLeft: Radius.circular(28),
-        bottomRight: Radius.circular(28),
+class _ProfileHeader extends StatelessWidget {
+  final double topPadding;
+  final String name;
+  final String subtitle;
+  final String? photoUrl;
+
+  const _ProfileHeader({
+    required this.topPadding,
+    required this.name,
+    required this.subtitle,
+    required this.photoUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
       ),
-    ),
-    padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 28),
-    child: Column(
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.person_outline, color: AppColors.accent, size: 28),
-            SizedBox(width: 12),
-            Text(
-              'Profile',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+      padding: EdgeInsets.fromLTRB(16, topPadding + 12, 16, 28),
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.person_outline, color: AppColors.accent, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.accent, width: 2),
             ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.accent, width: 2),
+            child: photoUrl != null
+                ? ClipOval(child: Image.network(photoUrl!, fit: BoxFit.cover))
+                : const Icon(Icons.person, color: Colors.white, size: 44),
           ),
-          child: photoUrl != null
-              ? ClipOval(child: Image.network(photoUrl, fit: BoxFit.cover))
-              : const Icon(Icons.person, color: Colors.white, size: 44),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          name,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          const SizedBox(height: 12),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: const TextStyle(fontSize: 13, color: Colors.white60),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 13, color: Colors.white60),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Login Sheet ──────────────────────────────────────────────────────────────
@@ -380,6 +530,7 @@ class _LoginSheetState extends State<_LoginSheet> {
   bool _isLogin = true;
   bool _loading = false;
   String? _error;
+  File? _pickedImage;
 
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
@@ -391,6 +542,15 @@ class _LoginSheetState extends State<_LoginSheet> {
     _passwordCtrl.dispose();
     _nameCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (picked != null) setState(() => _pickedImage = File(picked.path));
   }
 
   Future<void> _submit() async {
@@ -409,8 +569,19 @@ class _LoginSheetState extends State<_LoginSheet> {
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text.trim(),
         );
+        final user = cred.user!;
         if (_nameCtrl.text.trim().isNotEmpty) {
-          await cred.user?.updateDisplayName(_nameCtrl.text.trim());
+          await user.updateDisplayName(_nameCtrl.text.trim());
+        }
+        // Upload profile photo if selected
+        if (_pickedImage != null) {
+          final ref = FirebaseStorage.instance.ref(
+            'profile_photos/${user.uid}.jpg',
+          );
+          await ref.putFile(_pickedImage!);
+          final url = await ref.getDownloadURL();
+          await user.updatePhotoURL(url);
+          await user.reload();
         }
       }
       if (mounted) Navigator.pop(context);
@@ -473,150 +644,209 @@ class _LoginSheetState extends State<_LoginSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _isLogin = true),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: _isLogin ? AppColors.primary : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'Login',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _isLogin ? Colors.white : Colors.grey,
+            const SizedBox(height: 20),
+            // Toggle
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isLogin = true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _isLogin
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Login',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _isLogin ? Colors.white : Colors.grey,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _isLogin = false),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: !_isLogin ? AppColors.primary : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'Sign Up',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: !_isLogin ? Colors.white : Colors.grey,
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _isLogin = false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: !_isLogin
+                            ? AppColors.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        'Sign Up',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: !_isLogin ? Colors.white : Colors.grey,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          if (!_isLogin) ...[
-            _field('Full Name', Icons.person_outline, controller: _nameCtrl),
-            const SizedBox(height: 12),
-          ],
-          _field('Email', Icons.email_outlined, controller: _emailCtrl),
-          const SizedBox(height: 12),
-          _field(
-            'Password',
-            Icons.lock_outline,
-            obscure: true,
-            controller: _passwordCtrl,
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 10),
-            Text(
-              _error!,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              ],
             ),
-          ],
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _loading ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              child: _loading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
-                    )
-                  : Text(
-                      _isLogin ? 'Login' : 'Create Account',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Expanded(child: Divider()),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  'or continue with',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                ),
-              ),
-              const Expanded(child: Divider()),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            const SizedBox(height: 20),
+            // Profile photo picker (signup only)
+            if (!_isLogin) ...[
               GestureDetector(
-                onTap: _loading ? null : _googleSignIn,
-                child: _socialBtn('G', Colors.red),
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.accent, width: 2),
+                      ),
+                      child: _pickedImage != null
+                          ? ClipOval(
+                              child: Image.file(
+                                _pickedImage!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person,
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: AppColors.accent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          size: 14,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 16),
-              _socialBtn('', Colors.black, icon: Icons.apple),
-              const SizedBox(width: 16),
-              _socialBtn('📱', Colors.green),
+              const SizedBox(height: 6),
+              Text(
+                'Optional',
+                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 14),
+              _field('Full Name', Icons.person_outline, controller: _nameCtrl),
+              const SizedBox(height: 12),
             ],
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Continue as Guest',
-              style: TextStyle(color: AppColors.accent),
+            _field('Email', Icons.email_outlined, controller: _emailCtrl),
+            const SizedBox(height: 12),
+            _field(
+              'Password',
+              Icons.lock_outline,
+              obscure: true,
+              controller: _passwordCtrl,
             ),
-          ),
-        ],
+            if (_error != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                _error!,
+                style: const TextStyle(color: Colors.red, fontSize: 13),
+              ),
+            ],
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : Text(
+                        _isLogin ? 'Login' : 'Create Account',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    'or continue with',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: _loading ? null : _googleSignIn,
+                  child: _socialBtn('G', Colors.red),
+                ),
+                const SizedBox(width: 16),
+                _socialBtn('', Colors.black, icon: Icons.apple),
+                const SizedBox(width: 16),
+                _socialBtn('📱', Colors.green),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Continue as Guest',
+                style: TextStyle(color: AppColors.accent),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
