@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import '../../state/auth_state.dart';
+import 'phone_auth_sheet.dart';
 
 /// Call this from anywhere to open the login/signup bottom sheet
 void showLoginSheet(BuildContext context) {
@@ -187,6 +188,15 @@ class _LoggedInProfile extends StatefulWidget {
 class _LoggedInProfileState extends State<_LoggedInProfile> {
   bool _uploading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    // Reload user to ensure displayName and photoURL are up to date
+    FirebaseAuth.instance.currentUser?.reload().then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
   Future<void> _changePhoto() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -225,10 +235,13 @@ class _LoggedInProfileState extends State<_LoggedInProfile> {
 
   @override
   Widget build(BuildContext context) {
+    // Reload user each build to get fresh displayName/photoURL
     final user = FirebaseAuth.instance.currentUser;
     final topPadding = MediaQuery.of(context).padding.top;
     final textColor = Theme.of(context).colorScheme.onSurface;
-    final displayName = user?.displayName ?? 'User';
+    final displayName = (user?.displayName?.isNotEmpty == true)
+        ? user!.displayName!
+        : user?.email?.split('@').first ?? 'User';
     final email = user?.email ?? '';
     final photoUrl = user?.photoURL;
 
@@ -554,6 +567,12 @@ class _LoginSheetState extends State<_LoginSheet> {
   }
 
   Future<void> _submit() async {
+    // Validate Full Name required for signup
+    if (!_isLogin && _nameCtrl.text.trim().isEmpty) {
+      setState(() => _error = 'Full Name is required.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -564,15 +583,15 @@ class _LoginSheetState extends State<_LoginSheet> {
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text.trim(),
         );
+        // Reload so displayName is fresh on profile page
+        await FirebaseAuth.instance.currentUser?.reload();
       } else {
         final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text.trim(),
         );
         final user = cred.user!;
-        if (_nameCtrl.text.trim().isNotEmpty) {
-          await user.updateDisplayName(_nameCtrl.text.trim());
-        }
+        await user.updateDisplayName(_nameCtrl.text.trim());
         // Upload profile photo if selected
         if (_pickedImage != null) {
           final ref = FirebaseStorage.instance.ref(
@@ -581,8 +600,8 @@ class _LoginSheetState extends State<_LoginSheet> {
           await ref.putFile(_pickedImage!);
           final url = await ref.getDownloadURL();
           await user.updatePhotoURL(url);
-          await user.reload();
         }
+        await user.reload();
       }
       if (mounted) Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
@@ -760,7 +779,12 @@ class _LoginSheetState extends State<_LoginSheet> {
                 style: TextStyle(fontSize: 11, color: Colors.grey[500]),
               ),
               const SizedBox(height: 14),
-              _field('Full Name', Icons.person_outline, controller: _nameCtrl),
+              _field(
+                'Full Name',
+                Icons.person_outline,
+                controller: _nameCtrl,
+                required: true,
+              ),
               const SizedBox(height: 12),
             ],
             _field('Email', Icons.email_outlined, controller: _emailCtrl),
@@ -834,7 +858,15 @@ class _LoginSheetState extends State<_LoginSheet> {
                 const SizedBox(width: 16),
                 _socialBtn('', Colors.black, icon: Icons.apple),
                 const SizedBox(width: 16),
-                _socialBtn('📱', Colors.green),
+                GestureDetector(
+                  onTap: _loading
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                          showPhoneAuthSheet(context);
+                        },
+                  child: _socialBtn('📱', Colors.green),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -856,12 +888,13 @@ class _LoginSheetState extends State<_LoginSheet> {
     IconData icon, {
     bool obscure = false,
     TextEditingController? controller,
+    bool required = false,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscure,
       decoration: InputDecoration(
-        hintText: hint,
+        hintText: required ? '$hint *' : hint,
         prefixIcon: Icon(icon, color: AppColors.accent),
         filled: true,
         fillColor: Colors.grey[100],
