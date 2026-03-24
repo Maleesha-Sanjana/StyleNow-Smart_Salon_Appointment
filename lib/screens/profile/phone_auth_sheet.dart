@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -52,6 +53,16 @@ class _PhoneAuthSheetState extends State<PhoneAuthSheet> {
   }
 
   Future<void> _sendOtp() async {
+    // Firebase Phone Auth crashes on iOS Simulator — block it early
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      setState(() {
+        _loading = false;
+        _error =
+            'Phone auth requires a real iPhone.\nIt does not work on iOS Simulator.';
+      });
+      return;
+    }
+
     final phone = _phoneCtrl.text.trim();
     if (phone.isEmpty) {
       setState(() => _error = 'Please enter your phone number.');
@@ -63,33 +74,55 @@ class _PhoneAuthSheetState extends State<PhoneAuthSheet> {
       _error = null;
     });
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: fullNumber,
-      timeout: const Duration(seconds: 60),
-      forceResendingToken: _resendToken,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-verification on Android
-        await FirebaseAuth.instance.signInWithCredential(credential);
-        if (mounted) Navigator.pop(context);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() {
-          _loading = false;
-          _error = _friendlyError(e.code);
-        });
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        setState(() {
-          _loading = false;
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: fullNumber,
+        timeout: const Duration(seconds: 60),
+        forceResendingToken: _resendToken,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            await FirebaseAuth.instance.signInWithCredential(credential);
+            if (mounted) Navigator.pop(context);
+          } catch (e) {
+            if (mounted) {
+              setState(() {
+                _loading = false;
+                _error = 'Auto-verification failed.';
+              });
+            }
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (mounted) {
+            setState(() {
+              _loading = false;
+              _error = _friendlyError(e.code);
+            });
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (mounted) {
+            setState(() {
+              _loading = false;
+              _verificationId = verificationId;
+              _resendToken = resendToken;
+              _step = 'otp';
+            });
+          }
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
-          _resendToken = resendToken;
-          _step = 'otp';
+          if (mounted) setState(() => _loading = false);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = 'Phone auth requires a real device on iOS.';
         });
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        _verificationId = verificationId;
-      },
-    );
+      }
+    }
   }
 
   Future<void> _verifyOtp() async {
