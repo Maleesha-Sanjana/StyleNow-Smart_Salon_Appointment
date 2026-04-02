@@ -7,6 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import '../../state/auth_state.dart';
 import 'phone_auth_sheet.dart';
+import 'my_bookings_page.dart';
+import 'saved_salons_page.dart';
+import 'my_reviews_page.dart';
+import 'my_orders_page.dart';
+import 'settings_page.dart';
 
 /// Call this from anywhere to open the login/signup bottom sheet
 void showLoginSheet(BuildContext context) {
@@ -362,35 +367,52 @@ class _LoggedInProfileState extends State<_LoggedInProfile> {
                     Icons.calendar_today_outlined,
                     'My Bookings',
                     textColor,
-                    () {},
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyBookingsPage()),
+                    ),
                   ),
                   _tile(
                     context,
                     Icons.favorite_outline,
                     'Saved Salons',
                     textColor,
-                    () {},
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SavedSalonsPage(),
+                      ),
+                    ),
                   ),
                   _tile(
                     context,
                     Icons.star_outline,
                     'My Reviews',
                     textColor,
-                    () {},
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyReviewsPage()),
+                    ),
                   ),
                   _tile(
                     context,
                     Icons.shopping_bag_outlined,
                     'My Orders',
                     textColor,
-                    () {},
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyOrdersPage()),
+                    ),
                   ),
                   _tile(
                     context,
                     Icons.settings_outlined,
                     'Settings',
                     textColor,
-                    () {},
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsPage()),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
