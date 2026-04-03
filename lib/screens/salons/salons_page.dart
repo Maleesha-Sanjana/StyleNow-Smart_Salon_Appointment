@@ -527,7 +527,6 @@ class _FeaturedBanner extends StatelessWidget {
     return GestureDetector(
       onTap: onBook,
       child: Container(
-        height: 140,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           gradient: const LinearGradient(
@@ -571,13 +570,14 @@ class _FeaturedBanner extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -598,36 +598,33 @@ class _FeaturedBanner extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         const Text(
                           'Beauty Lounge',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: AppColors.star,
-                              size: 14,
-                            ),
-                            const Text(
+                          children: const [
+                            Icon(Icons.star, color: AppColors.star, size: 13),
+                            Text(
                               ' 4.9  ',
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.location_on,
                               color: AppColors.accent,
                               size: 13,
                             ),
-                            const Text(
+                            Text(
                               ' 0.5 km',
                               style: TextStyle(
                                 color: Colors.white70,
@@ -636,11 +633,11 @@ class _FeaturedBanner extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 6,
+                            horizontal: 12,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.accent,
@@ -658,7 +655,8 @@ class _FeaturedBanner extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Text('💄', style: TextStyle(fontSize: 64)),
+                  const SizedBox(width: 8),
+                  const Text('💄', style: TextStyle(fontSize: 48)),
                 ],
               ),
             ),
@@ -891,22 +889,29 @@ class _SalonCard extends StatelessWidget {
                 // Stats row
                 Row(
                   children: [
-                    _InfoChip(
-                      icon: Icons.location_on_outlined,
-                      label: salon.distance,
-                      color: AppColors.accent,
+                    Flexible(
+                      child: _InfoChip(
+                        icon: Icons.location_on_outlined,
+                        label: salon.distance,
+                        color: AppColors.accent,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    _InfoChip(
-                      icon: Icons.chat_bubble_outline,
-                      label: '${salon.reviews} reviews',
-                      color: subColor,
+                    const SizedBox(width: 10),
+                    Flexible(
+                      flex: 2,
+                      child: _InfoChip(
+                        icon: Icons.chat_bubble_outline,
+                        label: '${salon.reviews} reviews',
+                        color: subColor,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    _InfoChip(
-                      icon: Icons.access_time_outlined,
-                      label: 'Open',
-                      color: Colors.green,
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: _InfoChip(
+                        icon: Icons.access_time_outlined,
+                        label: 'Open',
+                        color: Colors.green,
+                      ),
                     ),
                   ],
                 ),
@@ -946,32 +951,35 @@ class _SalonCard extends StatelessWidget {
 
                 // Price + Book row
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Starting from',
-                          style: TextStyle(fontSize: 11, color: subColor),
-                        ),
-                        Text(
-                          'Rs. ${salon.price}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: textColor,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Starting from',
+                            style: TextStyle(fontSize: 11, color: subColor),
                           ),
-                        ),
-                      ],
+                          Text(
+                            'Rs. ${salon.price}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 12),
                     ElevatedButton(
                       onPressed: onBook,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 28,
+                          horizontal: 24,
                           vertical: 12,
                         ),
                         shape: RoundedRectangleBorder(
@@ -1018,7 +1026,13 @@ class _InfoChip extends StatelessWidget {
       children: [
         Icon(icon, size: 13, color: color),
         const SizedBox(width: 3),
-        Text(label, style: TextStyle(fontSize: 12, color: color)),
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 12, color: color),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
