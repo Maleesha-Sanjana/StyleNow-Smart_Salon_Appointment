@@ -9,6 +9,7 @@ import '../../state/auth_state.dart';
 import 'phone_auth_sheet.dart';
 import 'my_bookings_page.dart';
 import 'saved_salons_page.dart';
+import 'saved_locations_page.dart';
 import 'my_reviews_page.dart';
 import 'my_orders_page.dart';
 import 'settings_page.dart';
@@ -118,6 +119,12 @@ class _GuestProfile extends StatelessWidget {
                     context,
                     Icons.favorite_outline,
                     'Saved Salons',
+                    textColor,
+                  ),
+                  _lockedTile(
+                    context,
+                    Icons.location_on_outlined,
+                    'Saved Locations',
                     textColor,
                   ),
                   _lockedTile(
@@ -381,6 +388,18 @@ class _LoggedInProfileState extends State<_LoggedInProfile> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const SavedSalonsPage(),
+                      ),
+                    ),
+                  ),
+                  _tile(
+                    context,
+                    Icons.location_on_outlined,
+                    'Saved Locations',
+                    textColor,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SavedLocationsPage(),
                       ),
                     ),
                   ),
