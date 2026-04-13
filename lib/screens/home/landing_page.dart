@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../theme/app_theme.dart';
 import '../../main.dart';
 import '../../state/auth_state.dart';
+import '../messages/messages_page.dart';
 import '../categories/haircut_page.dart';
 import '../categories/beard_page.dart';
 import '../categories/facial_page.dart';
@@ -180,7 +181,15 @@ class _LandingPageState extends State<LandingPage> {
                                 color: Colors.white,
                                 size: 26,
                               ),
-                              onPressed: () => guardAction(context),
+                              onPressed: () {
+                                if (!guardAction(context)) return;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const MessagesPage(),
+                                  ),
+                                );
+                              },
                             ),
                             Positioned(
                               right: 10,
