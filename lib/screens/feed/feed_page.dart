@@ -201,16 +201,6 @@ class _FeedPageState extends State<FeedPage> {
                 ),
                 const SizedBox(width: 8),
                 _NavIconBtn(
-                  icon: Icons.messenger_outline_rounded,
-                  onTap: () => guardAction(context),
-                  bgColor: isDark
-                      ? const Color(0xFF3A3B3C)
-                      : const Color(0xFFE4E6EB),
-                  iconColor: textColor,
-                  badgeCount: 3,
-                ),
-                const SizedBox(width: 8),
-                _NavIconBtn(
                   icon: Icons.notifications_outlined,
                   onTap: () => guardAction(context),
                   bgColor: isDark
