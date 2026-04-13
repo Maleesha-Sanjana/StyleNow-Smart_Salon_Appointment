@@ -446,10 +446,16 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _sendPasswordReset(String email) async {
+    if (email.isEmpty) {
+      _showSnack('No email address found for this account.', error: true);
+      return;
+    }
     setState(() => _sendingReset = true);
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      _showSnack('Password reset email sent to $email');
+      _showSnack(
+        'Password reset email sent to $email. Check your spam folder if you don\'t see it.',
+      );
     } catch (e) {
       _showSnack(e.toString(), error: true);
     } finally {
